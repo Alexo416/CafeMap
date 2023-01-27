@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <script defer src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous">
+  </script>
+  <title>Alexanders Map</title>
+  <style>
+    #map {
+      height: 700px;
+      width: 100%;
+    }
+
+    html,
+    body {
+      overflow-x: hidden;
+
+    }
+
+
+    /* .footer {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 60px;
+      line-height: 60px;
+      background-color: #212529;
+      color: white;
+      text-align: center;
+    } */
+
+    @media screen and (max-width: 670px) {
+      #map {
+        height: 430px;
+        width: 100%;
+      }
+
+      html,
+      body {
+        background-color: #212529;
+        scroll-behavior: smooth;
+        color: grey;
+      }
+
+
+      /* .footer {
+        display: none;
+      } */
+    }
+  </style>
+</head>
+
+<body>
+
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">Alex Google Maps</a>
+      </div>
+      <button id="currentLocation" class="btn btn-danger navbar-btn">Find My Location </button>
+    </div>
+  </nav>
+
+  <div id="map"></div>
+  <br>
+
+  <br>
+  <b class="form-label ml-lg-3">Start: </b>
+  <select id="start" class="form-select col-md-7 col-sm-12" aria-label="Disabled select example" disabled>
+    <option value="" disabled selected>My Location</option>
+  </select>
+
+  <br>
+  <br>
+  <b class="form-label ml-lg-3">Go To Cafe: </b>
+  <select id="end" class="form-select col-md-7 col-sm-12">
+    <option value="" disabled selected>Choose A Cafe For Directions</option>
+    <option value="300 King St W, Hamilton, ON L8P 1B1">Ark + Anchor Espresso Ba</option>
+    <option value="142 Charlton Ave W, Hamilton, ON L8P 2C7">Durand Coffee</option>
+    <option value="27 King William St, Hamilton, ON L8R 1A1">RELAY Coffee Roasters</option>
+    <option value="200 James St S, Hamilton, ON L8P 3A9">House Of Java</option>
+    <option value="9 Richwill Rd, Hamilton, ON L9C 1R8">Bring Your Dog Cafe</option>
+    <option value="977 King St E, Hamilton, ON L8M 1C3">Vintage Coffee Roasters</option>
+    <option value="1000 Upper Gage Ave #4, Hamilton, ON L8V 4R5">Munchies Coffee House & Barkery</option>
+    <option value="1020 King St W, Hamilton, ON L8S 1L4">Paisley Coffeehouse & Eatery</option>
+    <option value="1309 Main St W Unit A-2, Hamilton, ON L8S 1C5">Williams Fresh Cafe</option>
+    <option value="1405 Upper James St, Hamilton, ON L9B 1K2">Starbucks</option>
+    <option value="601 Burlington St E, Hamilton, ON L8L 4J5">Two Cougars & A Cafe</option>
+  </select>
+
+
+
+  <div class="form-group mt-4 w-60 mx-3 w-xs-100 mx-xs-0">
+    <label for="address" class="control-label"><strong>Address</strong> </label>
+    <input type="text" id="address" class="form-control" placeholder="Enter A Location">
+  </div>
+  <button id="enteredAddress" style="font-size:14px;" class="btn btn-primary ml-3"> Submit</button>
+
+
+
+  <br>
+
+
+  <div class="row justify-content-center mb-1 mt-4 mx-lg-3">
+    <button id="small" class="w-100 btn btn-outline-info col-sm">Small Seating Space</button>
+    <button id="medium" class="btn btn-outline-info col-sm">Medium Seating Space</button>
+    <button id="large" class="btn btn-outline-info col-sm">Large Seating Space</button>
+    <button id="all" class="btn btn-outline-info col-sm">All Cafes</button>
+  </div>
+
+  <br>
+
+
+  <!-- API Key has been removed -->
+  <script async
+    src="https://maps.googleapis.com/maps/api/js?">
+  </script>
+  <script src="cafes.js"></script>
+  <script>
+    let map;
+    let markers = [];
+    let user_location_value;
+    let user_entered_location_value;
+
+
+    //Get users entered address and display on map
+    function getAddress() {
+      var address = document.getElementById('address').value;
+      geocoder.geocode({
+        'address': address
+      }, function (results, status) {
+        if (status == 'OK') {
+          var marker = new google.maps.Marker({
+            map: map,
+            position: results[0].geometry.location,
+            title: "Your Entered Address",
+            icon: "http://maps.google.com/mapfiles/kml/pushpin/red-pushpin.png"
+          });
+
+          user_entered_location_value = marker;
+
+
+        } else {
+          alert('Unsucessfull Reason: ' + status);
+        }
+      });
+    }
+
+    document.getElementById("enteredAddress").onclick = getAddress;
+
+
+    //Once user taps on "Find my location" button the users current location will be shown on the map
+    function showGeolocatedPosition(position) {
+      user_location = new google.maps.Marker({
+        position: {
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        },
+        title: "Your Geolocated Position",
+        icon: "http://maps.google.com/mapfiles/kml/pushpin/red-pushpin.png",
+      });
+
+
+      user_location_value = user_location;
+      user_location.setMap(map);
+    }
+
+
+    document.getElementById("currentLocation").onclick = function () {
+      navigator.geolocation.getCurrentPosition(showGeolocatedPosition);
+    }
+
+    //initializes map
+    function initMap() {
+
+      infowindow = new google.maps.InfoWindow();
+      geocoder = new google.maps.Geocoder();
+      directionsService = new google.maps.DirectionsService();
+      directionsRenderer = new google.maps.DirectionsRenderer();
+
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: {
+          lat: 43.2557,
+          lng: -79.8711
+        },
+        zoom: 12,
+      });
+
+
+
+      //when marker is clicked if another marker was opened that will be closed
+      //and the current selected marker will display a infowindow to the user
+      open_marker = function () {
+        infowindow.close();
+        infowindow.setContent(this.CONTENT_STRING);
+        infowindow.open(map, this);
+      }
+
+
+      //loads all data from cafe.js onto the map
+      for (i = 0; i < cafe.length; i++) {
+        if (cafe[i].CATEGORY == "Large Seating Space")
+          new_icon = "http://maps.google.com/mapfiles/kml/pal2/icon62.png";
+        else if (cafe[i].CATEGORY == "Medium Seating Space")
+          new_icon = "http://maps.google.com/mapfiles/kml/pal2/icon62.png";
+        else if (cafe[i].CATEGORY == "Small Seating Space")
+          new_icon = "http://maps.google.com/mapfiles/kml/pal2/icon62.png";
+        else
+          new_icon = "http://maps.google.com/mapfiles/kml/pushpin/red-pushpin.png";
+
+
+        cafe_marker = new google.maps.Marker({
+          position: {
+            lat: cafe[i].LATITUDE,
+            lng: cafe[i].LONGITUDE
+          },
+          title: cafe[i].NAME,
+          icon: new_icon
+        });
+
+        cafe_marker.CONTENT_STRING = cafe[i].CONTENT_STRING;
+        cafe_marker.CATEGORY = cafe[i].CATEGORY;
+
+
+        cafe_marker.setMap(map);
+
+        cafe_marker.addListener('click', open_marker);
+
+        markers.push(cafe_marker);
+
+      }
+
+
+      //filter cafes based on small seating space
+      function filterSmall() {
+        for (i = 0; i < markers.length; i++) {
+          if (markers[i].CATEGORY == "Small Seating Space")
+            markers[i].setMap(map);
+          else
+            markers[i].setMap(null);
+        }
+      }
+
+      document.getElementById("small").onclick = filterSmall;
+
+
+      //filter cafes based on medium seating space
+      function filterMedium() {
+        for (i = 0; i < markers.length; i++) {
+          if (markers[i].CATEGORY == "Medium Seating Space")
+            markers[i].setMap(map);
+          else
+            markers[i].setMap(null);
+        }
+      }
+
+      document.getElementById("medium").onclick = filterMedium;
+
+
+      //filter cafes based on Large seating space
+      function filterLarge() {
+        for (i = 0; i < markers.length; i++) {
+          if (markers[i].CATEGORY == "Large Seating Space")
+            markers[i].setMap(map);
+          else
+            markers[i].setMap(null);
+        }
+      }
+
+      document.getElementById("large").onclick = filterLarge;
+
+
+      function showAll() {
+        for (i = 0; i < markers.length; i++) {
+          markers[i].setMap(map);
+        }
+      }
+
+      document.getElementById("all").onclick = showAll;
+
+      directionsRenderer.setMap(map);
+
+
+      //gets the cafe destination from dropdown
+      onChangeHandler = function () {
+        calculateAndDisplayRoute(directionsService, directionsRenderer);
+      };
+
+
+      document.getElementById("end").addEventListener("change", onChangeHandler);
+
+
+    }
+
+
+    //gives the calculateAndDisplayRoute either the entered location address or the current users address
+    originHandler = function () {
+
+      if (user_location_value == null) {
+        return user_entered_location_value.position;
+      }
+
+      return user_location_value.position;
+
+    }
+
+
+
+    //returns a destination path to cafe based on users location or entered location
+    function calculateAndDisplayRoute(directionsService, directionsRenderer) {
+      directionsService
+        .route({
+          origin: originHandler(),
+          destination: {
+            query: document.getElementById("end").value,
+          },
+          travelMode: google.maps.TravelMode.WALKING,
+        })
+        .then((response) => {
+          directionsRenderer.setDirections(response);
+        })
+        .catch((e) => window.alert("Directions request failed due to " + status));
+    }
+  </script>
+</body>
+</html>
